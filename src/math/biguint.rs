@@ -1,4 +1,9 @@
+// big uint.
+// limbs are [u32; num_limbs (generic)], stored little-endian
+// type aliases are defined for 160 bits, 256 bits, 512 bits, 1024 bits
+
 mod add;
+mod bits;
 mod modulo;
 mod sub;
 
@@ -55,6 +60,7 @@ impl<const NUM_LIMBS: usize> BigUint<NUM_LIMBS> {
 }
 
 // common types:
+pub type Bu64 = BigUint<2>; // for testing!
 pub type Bu160 = BigUint<5>; // 5 * 32 = 160
 pub type Bu256 = BigUint<8>; // 8 * 32 = 160
 pub type Bu512 = BigUint<16>; // 16 * 32 = 512
