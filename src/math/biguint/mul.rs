@@ -31,7 +31,7 @@ impl<const NUM_LIMBS: usize> BigUint<NUM_LIMBS> {
 
 #[cfg(test)]
 mod tests {
-    use crate::math::biguint::Bu256;
+    use crate::math::biguint::{Bu64, Bu256};
 
     #[test]
     fn basic_mul() {
@@ -47,6 +47,19 @@ mod tests {
         assert_eq!(
             a.mul(&b),
             (Bu256::from_u128(u32::MAX as u128 * 4), Bu256::from_u128(0))
+        );
+    }
+
+    #[test]
+    fn mul_with_carry() {
+        let a = Bu64::from_slice(&[0xffff_ffff, 0xffff_ffff]);
+        let b = Bu64::from_slice(&[4]);
+        assert_eq!(
+            a.mul(&b),
+            (
+                Bu64::from_slice(&[0xffff_fffc, 0xffff_ffff]), // low
+                Bu64::from_slice(&[3])                         // high
+            )
         );
     }
 }
