@@ -5,6 +5,7 @@
 mod add;
 mod bits;
 mod modulo;
+mod mul;
 mod sub;
 
 #[derive(Debug, PartialEq, Eq)]
