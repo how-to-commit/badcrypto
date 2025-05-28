@@ -1,7 +1,7 @@
 use super::BigUint;
 
-impl BigUint {
-    fn modulo(&self, modulus: &BigUint) -> Self {
+impl<const NUM_LIMBS: usize> BigUint<NUM_LIMBS> {
+    fn modulo(&self, modulus: &Self) -> Self {
         todo!()
     }
 }

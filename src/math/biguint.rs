@@ -3,23 +3,22 @@ mod modulo;
 mod sub;
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct BigUint {
-    pub(crate) limbs: [u32; Self::NUM_LIMBS],
+pub struct BigUint<const NUM_LIMBS: usize> {
+    pub(crate) limbs: [u32; NUM_LIMBS],
 }
 
-impl BigUint {
-    // 64 limbs * 32 bits = 2048 bits
-    pub const NUM_LIMBS: usize = 64;
+impl<const NUM_LIMBS: usize> BigUint<NUM_LIMBS> {
+    pub const LIMBS: usize = NUM_LIMBS;
     pub const LIMB_SIZE: u32 = u32::MAX;
 
     pub const fn zero() -> Self {
         Self {
-            limbs: [0; Self::NUM_LIMBS],
+            limbs: [0; NUM_LIMBS],
         }
     }
 
     pub fn from_slice(val: &[u32]) -> Self {
-        if val.len() > Self::NUM_LIMBS {
+        if val.len() > NUM_LIMBS {
             panic!("Attempt to create BigUint with overflow.");
         }
 
@@ -47,13 +46,19 @@ impl BigUint {
         let mask = 0u32.wrapping_sub(choice);
         let mut res = Self::zero();
 
-        for i in 0..Self::NUM_LIMBS {
+        for i in 0..NUM_LIMBS {
             res.limbs[i] = (a.limbs[i] & !mask) | (b.limbs[i] & mask);
         }
 
         res
     }
 }
+
+// common types:
+pub type Bu160 = BigUint<5>; // 5 * 32 = 160
+pub type Bu256 = BigUint<8>; // 8 * 32 = 160
+pub type Bu512 = BigUint<16>; // 16 * 32 = 512
+pub type Bu1024 = BigUint<32>; // 32 * 32 = 1024
 
 #[cfg(test)]
 mod tests {
@@ -64,12 +69,12 @@ mod tests {
         assert_eq!(u32::MAX, 0xFFFF_FFFF); // sanity
 
         let huge_number = 5;
-        let fu128 = BigUint::from_u128(huge_number as u128);
-        let fslice = BigUint::from_slice(&[huge_number]);
+        let fu128 = Bu512::from_u128(huge_number as u128);
+        let fslice = Bu512::from_slice(&[huge_number]);
         assert_eq!(fu128, fslice);
 
-        let big_fu128 = BigUint::from_u128(0x1234_5678_abcd_ef00);
-        let big_fslice = BigUint::from_slice(&[0xabcd_ef00, 0x1234_5678]);
+        let big_fu128 = Bu512::from_u128(0x1234_5678_abcd_ef00);
+        let big_fslice = Bu512::from_slice(&[0xabcd_ef00, 0x1234_5678]);
         assert_eq!(big_fu128, big_fslice);
     }
 }
