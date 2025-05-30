@@ -4,6 +4,7 @@
 
 mod add;
 mod bits;
+mod div;
 mod modulo;
 mod mul;
 mod sub;
@@ -16,11 +17,20 @@ pub struct BigUint<const NUM_LIMBS: usize> {
 impl<const NUM_LIMBS: usize> BigUint<NUM_LIMBS> {
     pub const LIMBS: usize = NUM_LIMBS;
     pub const LIMB_SIZE: u32 = u32::MAX;
+    pub const LIMB_SIZE_BITS: usize = 32;
 
     pub const fn zero() -> Self {
         Self {
             limbs: [0; NUM_LIMBS],
         }
+    }
+
+    pub const fn one() -> Self {
+        let mut s = Self {
+            limbs: [0; NUM_LIMBS],
+        };
+        s.limbs[0] = 1;
+        s
     }
 
     pub fn from_slice(val: &[u32]) -> Self {
@@ -57,6 +67,15 @@ impl<const NUM_LIMBS: usize> BigUint<NUM_LIMBS> {
         }
 
         res
+    }
+
+    pub fn is_zero(&self) -> bool {
+        for i in self.limbs.iter() {
+            if *i != 0 {
+                return true;
+            }
+        }
+        false
     }
 }
 
