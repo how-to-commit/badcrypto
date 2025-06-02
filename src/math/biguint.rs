@@ -4,14 +4,15 @@
 
 mod add;
 mod bits;
+mod cmp;
 mod div;
 mod modulo;
 mod mul;
 mod sub;
 
-#[derive(Debug, PartialEq, Eq)]
-pub(crate) struct BigUint<const NUM_LIMBS: usize> {
-    pub(crate) limbs: [u32; NUM_LIMBS],
+#[derive(Debug)]
+pub struct BigUint<const NUM_LIMBS: usize> {
+    pub limbs: [u32; NUM_LIMBS],
 }
 
 impl<const NUM_LIMBS: usize> BigUint<NUM_LIMBS> {
@@ -77,6 +78,33 @@ impl<const NUM_LIMBS: usize> BigUint<NUM_LIMBS> {
         }
         false
     }
+
+    pub fn rand_bits<T>(bits_to_generate: usize, rng: &mut T) -> Self
+    where
+        T: rand::Rng,
+    {
+        let mut limbs = [0u32; NUM_LIMBS];
+        let chunks = bits_to_generate / 32;
+        let rem = bits_to_generate % 32;
+
+        // generate in blocks of 32 bits
+        for i in 0..chunks {
+            limbs[i] = rng.next_u32();
+        }
+
+        let bits = 1 << rem;
+        // finish by generating the last few bits
+        limbs[chunks] = rng.random_range(0..bits);
+
+        Self { limbs }
+    }
+
+    pub fn rand_between<T>(lower: &Self, upper: &Self, rng: &mut T) -> Self
+    where
+        T: rand::Rng,
+    {
+        todo!()
+    }
 }
 
 // common types:
@@ -102,5 +130,11 @@ mod tests {
         let big_fu128 = Bu512::from_u128(0x1234_5678_abcd_ef00);
         let big_fslice = Bu512::from_slice(&[0xabcd_ef00, 0x1234_5678]);
         assert_eq!(big_fu128, big_fslice);
+    }
+
+    #[test]
+    fn test_rand_gen() {
+        let mut r = rand::rng();
+        Bu512::rand_bits(33, &mut r);
     }
 }

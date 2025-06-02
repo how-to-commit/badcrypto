@@ -4,7 +4,7 @@ impl<const NUM_LIMBS: usize> BigUint<NUM_LIMBS> {
     /// eompute self / rhs, returning tuple (quotient, remainder)
     /// if rhs is zero, returns (0, self)
     /// if self is zero, returns (0, 0)
-    pub(crate) fn div_rem(&self, rhs: &Self) -> (Self, Self) {
+    pub fn div_rem(&self, rhs: &Self) -> (Self, Self) {
         let divisor_safe = !rhs.is_zero() as u32;
 
         let mut quotient = Self::zero();
