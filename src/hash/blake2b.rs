@@ -30,8 +30,9 @@ const SIGMA: [[usize; 16]; 12] = [
 
 pub struct Blake2b<'a> {
     hashlen: usize,
+    message: Vec<u8>,
     key: Option<&'a [u8]>,
-    keylen: usize,
+    state: [u64; 8],
 }
 
 impl<'a> Blake2b<'a> {
@@ -44,19 +45,15 @@ impl<'a> Blake2b<'a> {
 
         Self {
             hashlen,
+            message: vec![],
             key: None,
-            keylen: 0usize,
+            state: BLAKE2B_IV,
         }
     }
 
-    pub fn add_key(&mut self, key: &'a [u8]) {
-        self.key = Some(key);
-        self.keylen = key.len();
-    }
-
-    fn compress(state: &mut [u64; 8], chunk: &[u8], compressed: usize, is_last_block: bool) {
+    fn compress(&mut self, chunk: &[u8], compressed: usize, is_last_block: bool) {
         let mut v = [0; 16];
-        v[..8].copy_from_slice(state);
+        v[..8].copy_from_slice(&self.state);
         v[8..].copy_from_slice(&BLAKE2B_IV);
 
         // TODO: how is it possible to address u128 addresses on a 64 bit system?
@@ -84,7 +81,7 @@ impl<'a> Blake2b<'a> {
         }
 
         for i in 0..8 {
-            state[i] ^= v[i] ^ v[i + 8];
+            self.state[i] ^= v[i] ^ v[i + 8];
         }
     }
 
@@ -101,31 +98,40 @@ impl<'a> Blake2b<'a> {
 }
 
 impl HashFunction for Blake2b<'_> {
-    fn hash(&self, message: &[u8]) -> Vec<u8> {
-        let mut state = BLAKE2B_IV;
-        let mut m = message.to_vec();
+    fn update(&mut self, message: &[u8]) {
+        self.message.extend_from_slice(message);
+    }
+
+    fn digest(mut self) -> Vec<u8> {
         let mut bytes_compressed = 0;
-        let mut bytes_remaining = message.len();
+        let mut bytes_remaining = self.message.len();
+
+        let keylen = match self.key {
+            Some(k) => k.len(),
+            None => 0,
+        };
 
         // xor state[0] with 0x0101_kkhh -> k = keylen, h = hashlen
-        state[0] ^=
-            0x0101_0000 | (((self.keylen as u64) << 8) & 0xFF00) | (self.hashlen as u64 & 0xFF);
+        self.state[0] ^=
+            0x0101_0000 | (((keylen as u64) << 8) & 0xFF00) | (self.hashlen as u64 & 0xFF);
 
         // if there was a key: prepend the key to the 1st 128 bytes of the message
         if let Some(key) = self.key {
             let mut k = key.to_vec();
             pad_trailing(&mut k, 0, 128);
-            prepend(&mut m, k);
+            prepend(&mut self.message, k);
             bytes_remaining += 128;
         }
 
         // iterate over the message in 128 byte chunks
-        let mut chunks = m.chunks(128).peekable();
+        // this use of take() feels like a code smell...?
+        let message = std::mem::take(&mut self.message);
+        let mut chunks = message.chunks(128).peekable();
 
         // if chunks is empty, it runs this and skips the for loop
         if chunks.peek().is_none() {
             let chunk = [0; 128];
-            Self::compress(&mut state, &chunk, 0, true);
+            self.compress(&chunk, 0, true);
         }
 
         for chunk in chunks {
@@ -134,15 +140,21 @@ impl HashFunction for Blake2b<'_> {
             let is_last_chunk = bytes_remaining == 0;
             let mut c = chunk.to_vec();
             pad_trailing(&mut c, 0, 128);
-            Self::compress(&mut state, &c, bytes_compressed, is_last_chunk);
+            self.compress(&c, bytes_compressed, is_last_chunk);
         }
 
         let mut result = Vec::new();
-        for word in state {
+        for word in self.state {
             result.extend_from_slice(&word.to_le_bytes());
         }
         result.truncate(self.hashlen);
         result
+    }
+
+    fn hash(message: &[u8]) -> Vec<u8> {
+        let mut hasher = Self::new(64);
+        hasher.update(message);
+        hasher.digest()
     }
 }
 
@@ -156,9 +168,7 @@ mod tests {
 
     #[test]
     fn basic_blake2b() {
-        let hasher = Blake2b::new(64);
-
-        let res1 = u8_to_hexstr(&hasher.hash(b""));
+        let res1 = u8_to_hexstr(&Blake2b::hash(b""));
         let exp1 = "786a02f742015903c6c6fd852552d272912f4740e15847618a86e217f71f5419d25e1031afee585313896444934eb04b903a685b1448b755d56f701afe9be2ce";
         assert_eq!(res1, exp1);
     }

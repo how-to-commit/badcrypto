@@ -10,7 +10,7 @@ mod mul;
 mod sub;
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct BigUint<const NUM_LIMBS: usize> {
+pub(crate) struct BigUint<const NUM_LIMBS: usize> {
     pub(crate) limbs: [u32; NUM_LIMBS],
 }
 

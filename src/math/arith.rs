@@ -22,6 +22,11 @@ pub(crate) fn borrowing_sub(lhs: u32, rhs: u32, borrow: u32) -> (u32, u32) {
     (res_sum, res_overflow)
 }
 
+#[inline]
+pub(crate) fn carrying_mul(lhs: u32, rhs: u32, carry: u32) -> (u32, u32) {
+    todo!();
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
