@@ -79,6 +79,28 @@ impl<const NUM_LIMBS: usize> BigUint<NUM_LIMBS> {
         false
     }
 
+    pub fn trailing_zeros(&self) -> u32 {
+        let mut result = 0u32;
+        let mut done = 0u32;
+
+        for i in (0..NUM_LIMBS).rev() {
+            let is_zero = (self.limbs[i] == 0) as u32; // 1 if all are zeros
+            let not_done = !done & 1; // 1 if yet to encounter a nonzero limb
+
+            // if is_zero && not_done
+            result += 32 * is_zero * not_done;
+
+            // if !is_zero && not_done
+            let trailing_zeros = self.limbs[i].trailing_zeros();
+            result += trailing_zeros * (1 - is_zero) * not_done;
+
+            // set done to !is_zero
+            done |= 1 - is_zero;
+        }
+
+        result
+    }
+
     pub fn rand_bits<T>(bits_to_generate: usize, rng: &mut T) -> Self
     where
         T: rand::Rng,
@@ -103,7 +125,13 @@ impl<const NUM_LIMBS: usize> BigUint<NUM_LIMBS> {
     where
         T: rand::Rng,
     {
-        todo!()
+        let upper_bound = upper.trailing_zeros();
+        loop {
+            let result = Self::rand_bits(upper_bound as usize, rng);
+            if result < *upper && result > *lower {
+                return result;
+            }
+        }
     }
 }
 
@@ -136,5 +164,11 @@ mod tests {
     fn test_rand_gen() {
         let mut r = rand::rng();
         Bu512::rand_bits(33, &mut r);
+    }
+
+    #[test]
+    fn trailing_zeros() {
+        let x = Bu64::from_slice(&[0xFF00_0000]); // 64 - 8 = 56 trailing zeros
+        assert_eq!(x.trailing_zeros(), 56);
     }
 }
