@@ -8,9 +8,12 @@ mod cmp;
 mod div;
 mod modulo;
 mod mul;
+mod rand;
+mod sqrt;
 mod sub;
+mod utils;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct BigUint<const NUM_LIMBS: usize> {
     pub limbs: [u32; NUM_LIMBS],
 }
@@ -79,7 +82,7 @@ impl<const NUM_LIMBS: usize> BigUint<NUM_LIMBS> {
         false
     }
 
-    pub fn trailing_zeros(&self) -> u32 {
+    pub fn leading_zeros(&self) -> u32 {
         let mut result = 0u32;
         let mut done = 0u32;
 
@@ -91,47 +94,14 @@ impl<const NUM_LIMBS: usize> BigUint<NUM_LIMBS> {
             result += 32 * is_zero * not_done;
 
             // if !is_zero && not_done
-            let trailing_zeros = self.limbs[i].trailing_zeros();
-            result += trailing_zeros * (1 - is_zero) * not_done;
+            let leading_zeros = self.limbs[i].leading_zeros();
+            result += leading_zeros * (1 - is_zero) * not_done;
 
             // set done to !is_zero
             done |= 1 - is_zero;
         }
 
         result
-    }
-
-    pub fn rand_bits<T>(bits_to_generate: usize, rng: &mut T) -> Self
-    where
-        T: rand::Rng,
-    {
-        let mut limbs = [0u32; NUM_LIMBS];
-        let chunks = bits_to_generate / 32;
-        let rem = bits_to_generate % 32;
-
-        // generate in blocks of 32 bits
-        for i in 0..chunks {
-            limbs[i] = rng.next_u32();
-        }
-
-        let bits = 1 << rem;
-        // finish by generating the last few bits
-        limbs[chunks] = rng.random_range(0..bits);
-
-        Self { limbs }
-    }
-
-    pub fn rand_between<T>(lower: &Self, upper: &Self, rng: &mut T) -> Self
-    where
-        T: rand::Rng,
-    {
-        let upper_bound = upper.trailing_zeros();
-        loop {
-            let result = Self::rand_bits(upper_bound as usize, rng);
-            if result < *upper && result > *lower {
-                return result;
-            }
-        }
     }
 }
 
@@ -161,14 +131,11 @@ mod tests {
     }
 
     #[test]
-    fn test_rand_gen() {
-        let mut r = rand::rng();
-        Bu512::rand_bits(33, &mut r);
-    }
+    fn leading_zeros() {
+        let x = Bu512::from_slice(&[0xFF00_0000]); // 512 - 32 = 480 trailing zeros
+        assert_eq!(x.leading_zeros(), 480);
 
-    #[test]
-    fn trailing_zeros() {
-        let x = Bu64::from_slice(&[0xFF00_0000]); // 64 - 8 = 56 trailing zeros
-        assert_eq!(x.trailing_zeros(), 56);
+        let x = Bu512::from_slice(&[0xa9]); // 512 - 8 = 56 trailing zeros
+        assert_eq!(x.leading_zeros(), 504);
     }
 }
