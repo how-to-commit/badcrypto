@@ -2,7 +2,7 @@ use super::BigUint;
 
 impl<const NUM_LIMBS: usize> BigUint<NUM_LIMBS> {
     /// "widening" mul returning (low, high) bits
-    pub fn mul(&self, rhs: &Self) -> (Self, Self) {
+    pub fn widening_mul(&self, rhs: &Self) -> (Self, Self) {
         let mut res = vec![0u32; NUM_LIMBS * 2];
         let base: u64 = Self::LIMB_SIZE as u64 + 1;
 
@@ -27,6 +27,10 @@ impl<const NUM_LIMBS: usize> BigUint<NUM_LIMBS> {
 
         (lo, hi)
     }
+
+    pub fn _mul(&self, rhs: &Self) -> Self {
+        self.widening_mul(rhs).0
+    }
 }
 
 #[cfg(test)]
@@ -37,7 +41,10 @@ mod tests {
     fn basic_mul() {
         let a = Bu256::from_u128(5);
         let b = Bu256::from_u128(5);
-        assert_eq!(a.mul(&b), (Bu256::from_u128(25), Bu256::from_u128(0)));
+        assert_eq!(
+            a.widening_mul(&b),
+            (Bu256::from_u128(25), Bu256::from_u128(0))
+        );
     }
 
     #[test]
@@ -45,7 +52,7 @@ mod tests {
         let a = Bu256::from_u128(u32::MAX as u128);
         let b = Bu256::from_u128(4);
         assert_eq!(
-            a.mul(&b),
+            a.widening_mul(&b),
             (Bu256::from_u128(u32::MAX as u128 * 4), Bu256::from_u128(0))
         );
     }
@@ -55,7 +62,7 @@ mod tests {
         let a = Bu64::from_slice(&[0xffff_ffff, 0xffff_ffff]);
         let b = Bu64::from_slice(&[4]);
         assert_eq!(
-            a.mul(&b),
+            a.widening_mul(&b),
             (
                 Bu64::from_slice(&[0xffff_fffc, 0xffff_ffff]), // low
                 Bu64::from_slice(&[3])                         // high

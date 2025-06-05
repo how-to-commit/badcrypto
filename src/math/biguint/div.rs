@@ -39,6 +39,10 @@ impl<const NUM_LIMBS: usize> BigUint<NUM_LIMBS> {
 
         (quotient, remainder)
     }
+
+    pub fn _div(&self, rhs: &Self) -> Self {
+        self.div_rem(rhs).0
+    }
 }
 
 #[cfg(test)]

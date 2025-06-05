@@ -8,6 +8,8 @@ mod cmp;
 mod div;
 mod modulo;
 mod mul;
+mod ops;
+mod pow;
 mod rand;
 mod sqrt;
 mod sub;

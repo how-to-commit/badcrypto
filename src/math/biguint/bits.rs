@@ -1,6 +1,10 @@
 use super::BigUint;
 
 impl<const NUM_LIMBS: usize> BigUint<NUM_LIMBS> {
+    pub fn num_bits(&self) -> usize {
+        (Self::LIMB_SIZE_BITS * NUM_LIMBS) - self.leading_zeros() as usize
+    }
+
     pub fn bitand(&self, mask: &Self) -> Self {
         let mut res = Self::zero();
         for i in 0..NUM_LIMBS {

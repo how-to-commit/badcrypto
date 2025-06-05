@@ -19,7 +19,7 @@ impl<const NUM_LIMBS: usize> BigUint<NUM_LIMBS> {
 
 #[cfg(test)]
 mod tests {
-    use crate::math::biguint::Bu256;
+    use crate::math::biguint::{BigUint, Bu256};
 
     #[test]
     fn sqrt_edge_cases() {
@@ -32,5 +32,11 @@ mod tests {
         assert_eq!(Bu256::from_slice(&[169]).sqrt(), Bu256::from_slice(&[13]));
         assert_eq!(Bu256::from_slice(&[144]).sqrt(), Bu256::from_slice(&[12]));
         assert_eq!(Bu256::from_slice(&[10]).sqrt(), Bu256::from_slice(&[3]));
+    }
+
+    #[test]
+    fn sqrt2048() {
+        let a = BigUint::<128>::from_slice(&[0xFFFF_FFFF; 64]).sqrt();
+        println!("{a:#?}");
     }
 }

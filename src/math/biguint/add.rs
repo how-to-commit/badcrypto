@@ -11,6 +11,11 @@ impl<const NUM_LIMBS: usize> BigUint<NUM_LIMBS> {
         (ret, carry)
     }
 
+    /// add, no carry
+    pub fn _add(&self, rhs: &Self) -> Self {
+        self.carrying_add(rhs, 0).0
+    }
+
     /// perform self + rhs (mod p), where self + rhs < 2p
     /// let x = self + rhs
     /// if x < 2p,

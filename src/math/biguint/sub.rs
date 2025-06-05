@@ -11,6 +11,10 @@ impl<const NUM_LIMBS: usize> BigUint<NUM_LIMBS> {
         (ret, borrow)
     }
 
+    pub fn _sub(&self, rhs: &Self) -> Self {
+        self.borrowing_sub(rhs, 0).0
+    }
+
     /// perform self - rhs (mod p), where 0 < self - rhs < 2p
     pub fn sub_mod_lt2p(&self, rhs: &Self, modulo: &Self) -> Self {
         let (sum, _) = self.borrowing_sub(rhs, 0);
