@@ -96,7 +96,7 @@ mod tests {
     }
 
     #[test]
-    fn ml_bignum() {
+    fn prime_ml_bignum() {
         let mut rng = rand::rngs::StdRng::from_os_rng();
         assert_eq!(
             Bu256::from_u128(5633922075003977699492159071).probably_prime(32, &mut rng),

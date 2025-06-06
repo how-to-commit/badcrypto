@@ -2,7 +2,7 @@ use super::BigUint;
 
 impl<const NUM_LIMBS: usize> BigUint<NUM_LIMBS> {
     /// Calculate x^n with Montgomery's Ladder
-    pub fn pow_mod(self, p: &Self, n: &Self) -> Self {
+    pub fn pow_mod(&self, p: &Self, n: &Self) -> Self {
         let mut x1 = Self::one();
         let mut x2 = self.clone();
         let len = Self::LIMB_SIZE_BITS * NUM_LIMBS;
@@ -20,7 +20,7 @@ impl<const NUM_LIMBS: usize> BigUint<NUM_LIMBS> {
         x1
     }
 
-    pub fn pow(self, p: &Self) -> Self {
+    pub fn pow(&self, p: &Self) -> Self {
         let mut x1 = Self::one();
         let mut x2 = self.clone();
         let len = Self::LIMB_SIZE_BITS * NUM_LIMBS;
@@ -59,4 +59,3 @@ mod tests {
         );
     }
 }
-

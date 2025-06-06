@@ -64,6 +64,9 @@ impl<const NUM_LIMBS: usize> BigUint<NUM_LIMBS> {
         ret
     }
 
+    /// Select between 2 BigUints in constant-time:
+    /// if choice == 1, then choose b, else a
+    /// choice > 1 is invalid input
     pub fn ct_select(a: &Self, b: &Self, choice: u32) -> Self {
         let mask = 0u32.wrapping_sub(choice);
         let mut res = Self::zero();
@@ -73,6 +76,19 @@ impl<const NUM_LIMBS: usize> BigUint<NUM_LIMBS> {
         }
 
         res
+    }
+
+    /// Swap 2 BigUints in constant-time:
+    /// if choice == 1, then swap, else no swap
+    /// choice > 1 is invalid input
+    pub fn ct_swap(a: &mut Self, b: &mut Self, choice: u32) {
+        let mask = 0u32.wrapping_sub(choice);
+
+        for i in 0..NUM_LIMBS {
+            let t = (a.limbs[i] ^ b.limbs[i]) & mask;
+            a.limbs[i] = a.limbs[i] ^ t;
+            b.limbs[i] = b.limbs[i] ^ t;
+        }
     }
 
     pub fn is_zero(&self) -> bool {
@@ -139,5 +155,16 @@ mod tests {
 
         let x = Bu512::from_slice(&[0xa9]); // 512 - 8 = 56 trailing zeros
         assert_eq!(x.leading_zeros(), 504);
+    }
+
+    #[test]
+    fn ct_swap_basic() {
+        let ra = Bu512::from_u128(1234);
+        let rb = Bu512::from_u128(48);
+        let mut a = Bu512::from_u128(48);
+        let mut b = Bu512::from_u128(1234);
+        Bu512::ct_swap(&mut a, &mut b, 1);
+        assert_eq!(a, ra);
+        assert_eq!(b, rb);
     }
 }

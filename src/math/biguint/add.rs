@@ -25,11 +25,6 @@ impl<const NUM_LIMBS: usize> BigUint<NUM_LIMBS> {
         let (sum_minus_mod, borrow) = sum.borrowing_sub(modulo, 0);
         BigUint::ct_select(&sum, &sum_minus_mod, borrow)
     }
-
-    /// perform self + rhs (mod p). performs full modulus operation
-    pub fn add_mod_full(&self, rhs: &Self, modulo: &Self) -> Self {
-        todo!()
-    }
 }
 
 #[cfg(test)]
