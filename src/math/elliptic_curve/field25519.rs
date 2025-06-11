@@ -5,7 +5,7 @@ const A24: FieldElement = FieldElement {
     inner: [0xDB41, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 };
 
-const BASE_POINT: [u8; 32] = {
+pub const BASE_POINT: [u8; 32] = {
     let mut temp = [0u8; 32];
     temp[0] = 9;
     temp
@@ -164,7 +164,7 @@ impl std::fmt::Display for FieldElement {
     }
 }
 
-fn scalarmult(scalar: &[u8], point: &[u8]) -> Vec<u8> {
+pub fn scalarmult(scalar: &[u8], point: &[u8]) -> Vec<u8> {
     let mut clamped = [0u8; 32];
     clamped.clone_from_slice(scalar);
     // clamped[0] &= 0xf8;

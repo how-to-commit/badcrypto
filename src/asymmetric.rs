@@ -7,5 +7,6 @@ pub trait AsymmetricEncryption {
 }
 
 pub trait KeyExchange {
+    fn generate_public_key(&self) -> Vec<u8>;
     fn get_shared_secret(&self, other_pub_key: &[u8]) -> Vec<u8>;
 }
