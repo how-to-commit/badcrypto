@@ -37,7 +37,7 @@ impl<const NUM_LIMBS: usize> BigUint<NUM_LIMBS> {
 
 #[cfg(test)]
 mod tests {
-    use crate::math::biguint::{Bu64, Bu512};
+    use crate::math::biguint::Bu512;
     use rand::rng;
 
     #[test]

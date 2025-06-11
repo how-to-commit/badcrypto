@@ -28,6 +28,22 @@ impl<const NUM_LIMBS: usize> BigUint<NUM_LIMBS> {
         (lo, hi)
     }
 
+    pub fn mul_mod<const WIDE_LIMBS: usize>(&self, rhs: &Self, modulus: &Self) -> Self {
+        let (lo, hi) = self.widening_mul(rhs);
+
+        let mut wide = BigUint::<WIDE_LIMBS>::zero();
+        wide.limbs[..NUM_LIMBS].copy_from_slice(&lo.limbs);
+        wide.limbs[NUM_LIMBS..].copy_from_slice(&hi.limbs);
+
+        let mut wide_mod = BigUint::<WIDE_LIMBS>::zero();
+        wide_mod.limbs[..NUM_LIMBS].copy_from_slice(&modulus.limbs);
+
+        let wide_res = wide.modulo(&wide_mod);
+        let mut res = Self::zero();
+        res.limbs[..].copy_from_slice(&wide_res.limbs[..NUM_LIMBS]);
+        res
+    }
+
     pub fn _mul(&self, rhs: &Self) -> Self {
         self.widening_mul(rhs).0
     }
@@ -35,7 +51,7 @@ impl<const NUM_LIMBS: usize> BigUint<NUM_LIMBS> {
 
 #[cfg(test)]
 mod tests {
-    use crate::math::biguint::{Bu64, Bu256};
+    use crate::math::biguint::{BigUint, Bu256};
 
     #[test]
     fn basic_mul() {
@@ -59,13 +75,13 @@ mod tests {
 
     #[test]
     fn mul_with_carry() {
-        let a = Bu64::from_slice(&[0xffff_ffff, 0xffff_ffff]);
-        let b = Bu64::from_slice(&[4]);
+        let a = BigUint::<2>::from_slice(&[0xffff_ffff, 0xffff_ffff]);
+        let b = BigUint::<2>::from_slice(&[4]);
         assert_eq!(
             a.widening_mul(&b),
             (
-                Bu64::from_slice(&[0xffff_fffc, 0xffff_ffff]), // low
-                Bu64::from_slice(&[3])                         // high
+                BigUint::<2>::from_slice(&[0xffff_fffc, 0xffff_ffff]), // low
+                BigUint::<2>::from_slice(&[3])                         // high
             )
         );
     }

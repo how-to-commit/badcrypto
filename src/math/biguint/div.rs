@@ -47,56 +47,59 @@ impl<const NUM_LIMBS: usize> BigUint<NUM_LIMBS> {
 
 #[cfg(test)]
 mod tests {
-    use crate::math::biguint::Bu64;
+    use crate::math::biguint::Bu256;
 
     #[test]
     fn divide() {
         // small
-        let s_op1 = Bu64::from_slice(&[10]);
-        let s_op2 = Bu64::from_slice(&[5]);
+        let s_op1 = Bu256::from_slice(&[10]);
+        let s_op2 = Bu256::from_slice(&[5]);
         assert_eq!(
             s_op1.div_rem(&s_op2),
-            (Bu64::from_slice(&[2]), Bu64::from_slice(&[0]))
+            (Bu256::from_slice(&[2]), Bu256::from_slice(&[0]))
         );
 
         // large
-        let l_op1 = Bu64::from_slice(&[0xFFFF_FFFF, 0x1]);
-        let s_op3 = Bu64::from_slice(&[0xF]);
+        let l_op1 = Bu256::from_slice(&[0xFFFF_FFFF, 0x1]);
+        let s_op3 = Bu256::from_slice(&[0xF]);
 
         assert_eq!(
             l_op1.div_rem(&s_op3),
-            (Bu64::from_slice(&[0x2222_2222]), Bu64::from_slice(&[1]))
+            (Bu256::from_slice(&[0x2222_2222]), Bu256::from_slice(&[1]))
         );
 
         // both large, small result
-        let l_op2 = Bu64::from_slice(&[0xFFFF_FF77, 0xFFFF]);
-        let l_op3 = Bu64::from_slice(&[0xFFFF_FF77]);
+        let l_op2 = Bu256::from_slice(&[0xFFFF_FF77, 0xFFFF]);
+        let l_op3 = Bu256::from_slice(&[0xFFFF_FF77]);
 
         assert_eq!(
             l_op2.div_rem(&l_op3),
-            (Bu64::from_slice(&[0x10000]), Bu64::from_slice(&[0x88ff77]))
+            (
+                Bu256::from_slice(&[0x10000]),
+                Bu256::from_slice(&[0x88ff77])
+            )
         );
     }
 
     #[test]
     fn divide_denominator_larger() {
-        let op1 = Bu64::from_slice(&[5]);
-        let op2 = Bu64::from_slice(&[10]);
+        let op1 = Bu256::from_slice(&[5]);
+        let op2 = Bu256::from_slice(&[10]);
         assert_eq!(
             op1.div_rem(&op2),
-            (Bu64::from_slice(&[0]), Bu64::from_slice(&[5]))
+            (Bu256::from_slice(&[0]), Bu256::from_slice(&[5]))
         );
     }
 
     #[test]
     fn divide_by_zero() {
-        let op1 = Bu64::from_slice(&[0xFFFF_1234, 0xABCD]);
-        let op2 = Bu64::from_slice(&[0]);
+        let op1 = Bu256::from_slice(&[0xFFFF_1234, 0xABCD]);
+        let op2 = Bu256::from_slice(&[0]);
         assert_eq!(
             op1.div_rem(&op2),
             (
-                Bu64::from_slice(&[0]),
-                Bu64::from_slice(&[0xFFFF_1234, 0xABCD])
+                Bu256::from_slice(&[0]),
+                Bu256::from_slice(&[0xFFFF_1234, 0xABCD])
             )
         );
     }

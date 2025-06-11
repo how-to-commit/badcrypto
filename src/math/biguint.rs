@@ -2,6 +2,8 @@
 // limbs are [u32; num_limbs (generic)], stored little-endian
 // type aliases are defined for 160 bits, 256 bits, 512 bits, 1024 bits
 
+use std::fmt::Debug;
+
 mod add;
 mod bits;
 mod cmp;
@@ -15,7 +17,7 @@ mod sqrt;
 mod sub;
 mod utils;
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct BigUint<const NUM_LIMBS: usize> {
     pub limbs: [u32; NUM_LIMBS],
 }
@@ -37,6 +39,12 @@ impl<const NUM_LIMBS: usize> BigUint<NUM_LIMBS> {
         };
         s.limbs[0] = 1;
         s
+    }
+
+    pub const fn max() -> Self {
+        Self {
+            limbs: [Self::LIMB_SIZE; NUM_LIMBS],
+        }
     }
 
     pub fn from_slice(val: &[u32]) -> Self {
@@ -123,12 +131,19 @@ impl<const NUM_LIMBS: usize> BigUint<NUM_LIMBS> {
     }
 }
 
+impl<const N: usize> Debug for BigUint<N> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "BigUint<{N}>: ")?;
+        for limb in self.limbs.iter().rev() {
+            write!(f, "{limb:08x} ")?;
+        }
+        write!(f, "")
+    }
+}
+
 // common types:
-pub type Bu64 = BigUint<2>; // for testing!
-pub type Bu160 = BigUint<5>; // 5 * 32 = 160
 pub type Bu256 = BigUint<8>; // 8 * 32 = 160
 pub type Bu512 = BigUint<16>; // 16 * 32 = 512
-pub type Bu1024 = BigUint<32>; // 32 * 32 = 1024
 
 #[cfg(test)]
 mod tests {

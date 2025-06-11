@@ -1,3 +1,5 @@
+use std::ops::Mul;
+
 use super::BigUint;
 
 impl<const NUM_LIMBS: usize> BigUint<NUM_LIMBS> {
@@ -18,6 +20,30 @@ impl<const NUM_LIMBS: usize> BigUint<NUM_LIMBS> {
         }
 
         x1
+    }
+
+    pub fn pow_mod_innerwide<const WIDE: usize>(&self, exp: &Self, modulus: &Self) -> Self {
+        let mut result = BigUint::one();
+        let mut base = self % modulus;
+
+        for limb_idx in 0..NUM_LIMBS {
+            let exp_limb = exp.limbs[limb_idx];
+
+            for bit_pos in 0..32 {
+                let bit = (exp_limb >> bit_pos) & 1;
+                let temp_result = result.mul_mod::<WIDE>(&base, modulus);
+
+                for i in 0..NUM_LIMBS {
+                    let mask = (bit as u32).wrapping_neg(); // 0xFFFFFFFF if bit=1, 0x00000000 if bit=0
+                    result.limbs[i] = (mask & temp_result.limbs[i]) | (!mask & result.limbs[i]);
+                }
+
+                // Square the base for next iteration
+                base = base.mul_mod::<WIDE>(&base, modulus);
+            }
+        }
+
+        result
     }
 
     pub fn pow(&self, p: &Self) -> Self {

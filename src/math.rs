@@ -1,4 +1,4 @@
 mod arith;
-mod biguint;
-mod elliptic_curve;
-mod knapsack;
+pub mod biguint;
+pub mod elliptic_curve;
+pub mod knapsack;

@@ -16,12 +16,18 @@ impl<const NUM_LIMBS: usize> BigUint<NUM_LIMBS> {
         self.carrying_add(rhs, 0).0
     }
 
-    /// perform self + rhs (mod p), where self + rhs < 2p
+    /// perform self + rhs (mod p), where self + rhs < 2p, p < max
     /// let x = self + rhs
     /// if x < 2p,
     /// x mod p = (x-p) : x ? x - p > 0;
     pub fn add_mod_lt2p(&self, rhs: &Self, modulo: &Self) -> Self {
-        let (sum, _) = self.carrying_add(rhs, 0); // discard carry, self + rhs small
+        //     let (mut sum, carry) = self.carrying_add(rhs, 0);
+        //     let mut if_carry = Self::max().borrowing_sub(modulo, 0);
+        //     Self::ct_swap(&mut sum, &mut if_carry.0, carry);
+        //     let (sum_minus_mod, borrow) = sum.borrowing_sub(modulo, 0);
+        //     BigUint::ct_select(&sum, &sum_minus_mod, borrow)
+
+        let (sum, _carry) = self.carrying_add(rhs, 0);
         let (sum_minus_mod, borrow) = sum.borrowing_sub(modulo, 0);
         BigUint::ct_select(&sum, &sum_minus_mod, borrow)
     }

@@ -5,6 +5,13 @@ impl<const NUM_LIMBS: usize> BigUint<NUM_LIMBS> {
         (Self::LIMB_SIZE_BITS * NUM_LIMBS) - self.leading_zeros() as usize
     }
 
+    pub fn get_bit(&self, bit: usize) -> u32 {
+        let limb_index = bit / 32;
+        let bit_offset = bit % 32;
+
+        (self.limbs[limb_index] >> bit_offset) & 1
+    }
+
     pub fn bitand(&self, mask: &Self) -> Self {
         let mut res = Self::zero();
         for i in 0..NUM_LIMBS {
@@ -96,49 +103,52 @@ mod tests {
 
     #[test]
     fn shift_right() {
-        let op1 = Bu64::from_slice(&[0x12_34_56_78]);
-        assert_eq!(op1.unbounded_shr(17), Bu64::from_slice(&[0x91a]));
+        let op1 = Bu256::from_slice(&[0x12_34_56_78]);
+        assert_eq!(op1.unbounded_shr(17), Bu256::from_slice(&[0x91a]));
     }
 
     #[test]
     fn shift_right_when_zero() {
-        let op1 = Bu64::from_slice(&[0x12_34_56_78]);
-        assert_eq!(op1.unbounded_shr(0), Bu64::from_slice(&[0x12_34_56_78]));
+        let op1 = Bu256::from_slice(&[0x12_34_56_78]);
+        assert_eq!(op1.unbounded_shr(0), Bu256::from_slice(&[0x12_34_56_78]));
     }
 
     #[test]
     fn shift_right_with_shift_gt_len() {
-        let op1 = Bu64::from_slice(&[0x12_34_56_78]);
-        assert_eq!(op1.unbounded_shr(200), Bu64::from_slice(&[0]));
+        let op1 = Bu256::from_slice(&[0x12_34_56_78]);
+        assert_eq!(op1.unbounded_shr(200), Bu256::from_slice(&[0]));
     }
 
     #[test]
     fn shift_right_across_limbs() {
-        let op1 = Bu64::from_slice(&[0xde_ad_be_ef, 0x12_34_56_78]);
-        assert_eq!(op1.unbounded_shr(49), Bu64::from_slice(&[0x91a]));
+        let op1 = Bu256::from_slice(&[0xde_ad_be_ef, 0x12_34_56_78]);
+        assert_eq!(op1.unbounded_shr(49), Bu256::from_slice(&[0x91a]));
     }
 
     #[test]
     fn shift_left() {
-        let op1 = Bu64::from_slice(&[0x2_34_56_78]);
-        assert_eq!(op1.unbounded_shl(4), Bu64::from_slice(&[0x23_45_67_80]));
+        let op1 = Bu256::from_slice(&[0x2_34_56_78]);
+        assert_eq!(op1.unbounded_shl(4), Bu256::from_slice(&[0x23_45_67_80]));
     }
 
     #[test]
     fn shift_left_when_zero() {
-        let op1 = Bu64::from_slice(&[0x12_34_56_78]);
-        assert_eq!(op1.unbounded_shl(0), Bu64::from_slice(&[0x12_34_56_78]));
+        let op1 = Bu256::from_slice(&[0x12_34_56_78]);
+        assert_eq!(op1.unbounded_shl(0), Bu256::from_slice(&[0x12_34_56_78]));
     }
 
     #[test]
     fn shift_left_with_shift_gt_len() {
-        let op1 = Bu64::from_slice(&[0x12_34_56_78]);
-        assert_eq!(op1.unbounded_shl(200), Bu64::from_slice(&[0]));
+        let op1 = Bu256::from_slice(&[0x12_34_56_78]);
+        assert_eq!(op1.unbounded_shl(20000), Bu256::from_slice(&[0]));
     }
 
     #[test]
     fn shift_left_across_limbs() {
-        let op1 = Bu64::from_slice(&[0x1234]);
-        assert_eq!(op1.unbounded_shl(23), Bu64::from_slice(&[0x1a00_0000, 0x9]));
+        let op1 = Bu256::from_slice(&[0x1234]);
+        assert_eq!(
+            op1.unbounded_shl(23),
+            Bu256::from_slice(&[0x1a00_0000, 0x9])
+        );
     }
 }
