@@ -167,9 +167,9 @@ impl std::fmt::Display for FieldElement {
 pub fn scalarmult(scalar: &[u8], point: &[u8]) -> Vec<u8> {
     let mut clamped = [0u8; 32];
     clamped.clone_from_slice(scalar);
-    // clamped[0] &= 0xf8;
-    // clamped[31] &= 0x7f;
-    // clamped[31] |= 0x40;
+    clamped[0] &= 0xf8;
+    clamped[31] &= 0x7f;
+    clamped[31] |= 0x40;
 
     let mut x = FieldElement::from_bytes(point);
     let mut x2 = FieldElement::one();
