@@ -1,5 +1,5 @@
 # crypto (dont use)  
-General cryptographic library with zero dependencies other than Rust's stdlib
+Cryptographic primitive library with zero dependencies other than Rust's stdlib
 (and `rand`) for learning about cryptography and math. Planning to implement
 any algorithm (including non-secure ones).
 
