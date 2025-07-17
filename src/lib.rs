@@ -2,6 +2,7 @@
 
 pub mod asymmetric;
 pub mod hash;
+pub mod mac;
 
-mod math;
+mod arith;
 mod slice;
