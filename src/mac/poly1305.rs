@@ -17,6 +17,7 @@ use crate::{
 // in big endian:                       0x0fff_fffc_0fff_fffc_0fff_fffc_0fff_ffff (BE)
 const POLY1305_R_CLAMP_LO: u64 = 0x0fff_fffc_0fff_ffff;
 const POLY1305_R_CLAMP_HI: u64 = 0x0fff_fffc_0fff_fffc;
+const POLY1305_MOD_P: (u64, u64, u64) = (0xffff_ffff_ffff_fffb, 0xffff_ffff_ffff_ffff, 0x3);
 const POLY1305_MSG_CHUNK_SIZE_BYTES: usize = 16;
 
 pub struct Poly1305 {
@@ -149,8 +150,27 @@ impl OneTimeAuthenticator for Poly1305 {
         self.accum = (h0, h1, h2);
     }
 
-    fn finalize(self) {
-        todo!()
+    fn finalize(self) -> Vec<u8> {
+        // fully reduce the accumulator after the partial reduction in update()
+        //  - right now, 0 < h < 2 * (2^130 - 5)
+        // reduce h by subtracting 2^130 - 5
+        let (mut h0, mut h1, mut h2) = self.accum;
+        let (t0, b) = arith::borrowing_sub(h0, POLY1305_MOD_P.0, 0);
+        let (t1, b) = arith::borrowing_sub(h1, POLY1305_MOD_P.1, b);
+        let (t2, b) = arith::borrowing_sub(h2, POLY1305_MOD_P.2, b);
+
+        h0 = arith::ct_select_64(h0, t0, b);
+        h1 = arith::ct_select_64(h1, t1, b);
+
+        // compute tag
+        let mut carry = 0u64;
+        (h0, carry) = arith::carrying_add(h0, self.secret_s.0, carry);
+        h1 = arith::carrying_add(h0, self.secret_s.1, carry).0;
+
+        let mut res = vec![0u8; 16];
+        res[..8].copy_from_slice(&h0.to_le_bytes());
+        res[8..].copy_from_slice(&h1.to_le_bytes());
+        res
     }
 
     fn verify(self, tag: &[u8]) {
